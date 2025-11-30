@@ -17,9 +17,7 @@ const nextConfig: NextConfig = {
     ],
   },
   output: "standalone", // For Docker deployment
-  devIndicators: {
-    appIsrStatus: false, // Disable development indicators
-  },
+  devIndicators: {},
 };
 
 export default nextConfig;
