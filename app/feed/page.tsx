@@ -14,11 +14,22 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [genderFilter, setGenderFilter] = useState<string>("biological_female");
   const { isAdmin, user } = useAuth();
 
   useEffect(() => {
+    // Load gender preference from localStorage or user profile
+    const storedPreference = localStorage.getItem("gender_preference");
+    if (storedPreference) {
+      setGenderFilter(storedPreference);
+    } else if (user?.gender_preference) {
+      setGenderFilter(user.gender_preference);
+    }
+  }, [user]);
+
+  useEffect(() => {
     fetchFeed();
-  }, [page]);
+  }, [page, genderFilter]);
 
   const fetchFeed = async () => {
     try {
@@ -26,8 +37,10 @@ export default function FeedPage() {
       const searchParam = searchQuery
         ? `&search=${encodeURIComponent(searchQuery)}`
         : "";
+      const genderParam =
+        genderFilter !== "all" ? `&gender_category=${genderFilter}` : "";
       const response = await api.get<StoryListResponse>(
-        `/api/stories/feed?page=${page}&page_size=12${searchParam}`
+        `/api/stories/feed?page=${page}&page_size=12${searchParam}${genderParam}`
       );
       setStories(response.data);
     } catch (error) {
@@ -35,6 +48,21 @@ export default function FeedPage() {
       console.error("Error fetching feed:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenderFilterChange = (gender: string) => {
+    setGenderFilter(gender);
+    setPage(1);
+    localStorage.setItem("gender_preference", gender);
+
+    // Update user preference if logged in
+    if (user) {
+      api
+        .put("/api/auth/preferences", null, {
+          params: { gender_preference: gender },
+        })
+        .catch((err) => console.error("Failed to update preference:", err));
     }
   };
 
@@ -66,8 +94,42 @@ export default function FeedPage() {
             Explore approved stories from our community
           </p>
 
+          {/* Gender Filter */}
+          <div className="mt-6 flex gap-2">
+            <button
+              onClick={() => handleGenderFilterChange("biological_female")}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                genderFilter === "biological_female"
+                  ? "bg-pink-600 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              For Women
+            </button>
+            <button
+              onClick={() => handleGenderFilterChange("biological_male")}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                genderFilter === "biological_male"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              For Men
+            </button>
+            <button
+              onClick={() => handleGenderFilterChange("all")}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                genderFilter === "all"
+                  ? "bg-purple-600 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              All Stories
+            </button>
+          </div>
+
           {/* Search Bar */}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-4 flex gap-3">
             <input
               type="text"
               value={searchQuery}

@@ -3,6 +3,7 @@ export interface User {
   username: string;
   anonymous_name: string;
   role: "admin" | "user";
+  gender_preference: "biological_male" | "biological_female" | "all";
   created_at: string;
 }
 
@@ -36,6 +37,7 @@ export interface Story {
   author_id?: string;
   images: StoryImage[];
   tags: string[];
+  gender_category: "biological_male" | "biological_female" | "all";
   status: "draft" | "pending" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
@@ -48,6 +50,7 @@ export interface StoryCreate {
   content: string;
   images: StoryImage[];
   tags: string[];
+  gender_category?: "biological_male" | "biological_female" | "all";
 }
 
 export interface StoryUpdate {
@@ -67,4 +70,5 @@ export interface StoryListResponse {
 export interface StoryApproval {
   approved: boolean;
   rejection_reason?: string;
+  gender_category?: "biological_male" | "biological_female" | "all";
 }
