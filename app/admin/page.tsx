@@ -302,17 +302,23 @@ export default function AdminPage() {
   const fetchPendingStories = async () => {
     try {
       setLoading(true);
-      const response = await storiesAPI.getPending();
+      // TODO: Update to use new API without approval workflow
+      // const response = await storiesAPI.getPending();
+      const response = await storiesAPI.getAll();
       setStories(response.data.stories);
     } catch (error) {
       console.error("Error fetching stories:", error);
-      toast.error("Failed to load pending stories");
+      toast.error("Failed to load stories");
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (storyId: string) => {
+    // TODO: Remove - approval workflow removed
+    toast.info("Approval workflow has been removed. Stories are auto-published.");
+    return;
+    /*
     if (!confirm("Are you sure you want to approve this story?")) return;
 
     setProcessing(true);
@@ -336,9 +342,14 @@ export default function AdminPage() {
     } finally {
       setProcessing(false);
     }
+    */
   };
 
   const handleReject = async (storyId: string) => {
+    // TODO: Remove - approval workflow removed
+    toast.info("Rejection workflow has been removed. Use delete to remove inappropriate content.");
+    return;
+    /*
     if (!rejectionReason.trim()) {
       toast.error("Please provide a rejection reason");
       return;
@@ -368,6 +379,7 @@ export default function AdminPage() {
     } finally {
       setProcessing(false);
     }
+    */
   };
 
   const handleDelete = async (storyId: string) => {
