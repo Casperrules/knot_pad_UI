@@ -188,7 +188,7 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
         <p className="text-gray-700 mb-3">{video.caption}</p>
 
         {/* Tags */}
-        {video.tags.length > 0 && (
+        {(video.tags.length > 0 || video.mature_content) && (
           <div className="flex flex-wrap gap-2 mb-4">
             {video.tags.map((tag) => (
               <span
@@ -199,7 +199,7 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
               </span>
             ))}
             {video.mature_content && (
-              <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+              <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
                 18+
               </span>
             )}

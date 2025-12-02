@@ -6,7 +6,6 @@ import { videosAPI } from "@/lib/api";
 import type { Video } from "@/types";
 import VideoCard from "@/components/VideoCard";
 import UploadVideoModal from "@/components/UploadVideoModal";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
 import { useSearchParams, useRouter } from "next/navigation";
 
