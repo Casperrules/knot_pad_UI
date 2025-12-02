@@ -17,11 +17,13 @@ interface CommentType {
 
 interface CommentSectionProps {
   storyId?: string;
+  chapterId?: string;
   videoId?: string;
 }
 
 export default function CommentSection({
   storyId,
+  chapterId,
   videoId,
 }: CommentSectionProps) {
   const { user } = useAuth();
@@ -32,11 +34,13 @@ export default function CommentSection({
 
   useEffect(() => {
     loadComments();
-  }, [storyId, videoId]);
+  }, [storyId, chapterId, videoId]);
 
   const loadComments = async () => {
     try {
-      const endpoint = storyId
+      const endpoint = chapterId
+        ? `/api/comments/chapter/${chapterId}`
+        : storyId
         ? `/api/comments/story/${storyId}`
         : `/api/comments/video/${videoId}`;
       const response = await fetch(

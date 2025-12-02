@@ -315,7 +315,7 @@ export default function StoryDetailPage() {
                 <ChapterList
                   chapters={chapters}
                   storyId={storyId}
-                  isAuthor={isAuthor}
+                  isAuthor={isAuthor ?? false}
                   onEdit={handleEditChapter}
                   onDelete={handleDeleteChapter}
                 />

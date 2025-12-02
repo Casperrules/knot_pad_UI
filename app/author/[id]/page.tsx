@@ -95,7 +95,7 @@ export default function AuthorPage() {
             </div>
 
             {/* Pagination */}
-            {stories.total > stories.page_size && (
+            {stories.page_size && stories.total > stories.page_size && (
               <div className="mt-8 flex justify-center gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}

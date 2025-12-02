@@ -278,8 +278,9 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
       {/* Mature Content Modal */}
       {showMatureModal && (
         <MatureContentModal
+          isOpen={showMatureModal}
           onAccept={handleMatureAccept}
-          onDecline={handleMatureDecline}
+          onReject={handleMatureDecline}
         />
       )}
     </div>

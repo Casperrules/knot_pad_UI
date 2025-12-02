@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   },
   output: "standalone", // For Docker deployment
   devIndicators: {},
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 };
 
 export default nextConfig;

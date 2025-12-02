@@ -86,6 +86,7 @@ export interface StoryUpdate {
 export interface StoryListResponse {
   stories: Story[];
   total: number;
+  page_size?: number;
 }
 
 export interface StoryApproval {
