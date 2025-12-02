@@ -105,8 +105,8 @@ export default function UploadVideoModal({
     e.preventDefault();
     setError("");
 
-    if (!selectedFile && !formData.video_url) {
-      setError("Please select a video file or enter a video URL");
+    if (!selectedFile) {
+      setError("Please select a video file");
       return;
     }
 
@@ -125,14 +125,15 @@ export default function UploadVideoModal({
     try {
       setLoading(true);
 
-      let videoUrl = formData.video_url;
-
-      // Upload file if selected
-      if (selectedFile) {
-        toast.loading("Uploading video file...", { id: "video-upload" });
-        videoUrl = await uploadVideoFile();
-        toast.success("Video file uploaded!", { id: "video-upload" });
+      // Upload video file
+      if (!selectedFile) {
+        toast.error("Please select a video file");
+        return;
       }
+
+      toast.loading("Uploading video file...", { id: "video-upload" });
+      const videoUrl = await uploadVideoFile();
+      toast.success("Video file uploaded!", { id: "video-upload" });
 
       if (!videoUrl) {
         setError("Failed to get video URL");
@@ -279,41 +280,11 @@ export default function UploadVideoModal({
               )}
             </div>
 
-            {/* OR Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">OR</span>
-              </div>
-            </div>
-
-            {/* Video URL (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video URL (Optional)
-              </label>
-              <input
-                type="url"
-                value={formData.video_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, video_url: e.target.value })
-                }
-                placeholder="https://example.com/video.mp4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-900"
-                disabled={!!selectedFile}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Or paste a direct link to your video file
-              </p>
-            </div>
-
             {/* Video Preview */}
-            {(previewUrl || formData.video_url) && (
+            {previewUrl && (
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                 <video
-                  src={previewUrl || formData.video_url}
+                  src={previewUrl}
                   controls
                   className="w-full h-full object-contain"
                   playsInline
