@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { videosAPI } from "@/lib/api";
 import type { VideoCreate } from "@/types";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 interface UploadVideoModalProps {
   onClose: () => void;
@@ -21,14 +23,79 @@ export default function UploadVideoModal({
   });
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["video/mp4", "video/webm", "video/ogg", "video/quicktime", "video/x-msvideo"];
+    if (!validTypes.includes(file.type)) {
+      setError("Please select a valid video file (MP4, WebM, OGG, MOV, AVI)");
+      return;
+    }
+
+    // Validate file size (100MB max)
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+      setError("Video file must be less than 100MB");
+      return;
+    }
+
+    setError("");
+    setSelectedFile(file);
+    
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  const uploadVideoFile = async () => {
+    if (!selectedFile) return null;
+
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/videos/upload-video`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            setUploadProgress(progress);
+          },
+        }
+      );
+
+      return response.data.url;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.detail || "Failed to upload video file");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!formData.video_url) {
-      setError("Video URL is required");
+    if (!selectedFile && !formData.video_url) {
+      setError("Please select a video file or enter a video URL");
       return;
     }
 
@@ -39,10 +106,32 @@ export default function UploadVideoModal({
 
     try {
       setLoading(true);
-      await videosAPI.create(formData);
+
+      let videoUrl = formData.video_url;
+
+      // Upload file if selected
+      if (selectedFile) {
+        toast.loading("Uploading video file...", { id: "video-upload" });
+        videoUrl = await uploadVideoFile();
+        toast.success("Video file uploaded!", { id: "video-upload" });
+      }
+
+      if (!videoUrl) {
+        setError("Failed to get video URL");
+        return;
+      }
+
+      // Create video record
+      await videosAPI.create({
+        ...formData,
+        video_url: videoUrl,
+      });
+
+      toast.success("Video published successfully!");
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to upload video");
+      setError(err.message || err.response?.data?.detail || "Failed to upload video");
+      toast.error(err.message || "Failed to upload video");
     } finally {
       setLoading(false);
     }
@@ -99,10 +188,90 @@ export default function UploadVideoModal({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Video URL */}
+            {/* Video File Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video URL *
+                Upload Video File *
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="video-file-input"
+                />
+                <label
+                  htmlFor="video-file-input"
+                  className="cursor-pointer flex flex-col items-center"
+                >
+                  <svg
+                    className="w-12 h-12 text-gray-400 mb-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  {selectedFile ? (
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <p className="text-xs text-purple-600 mt-2">
+                        Click to change file
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Click to select video
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        MP4, WebM, OGG, MOV, AVI (max 100MB)
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+              {uploading && (
+                <div className="mt-3">
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Uploading...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* OR Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">OR</span>
+              </div>
+            </div>
+
+            {/* Video URL (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Video URL (Optional)
               </label>
               <input
                 type="url"
@@ -111,19 +280,19 @@ export default function UploadVideoModal({
                   setFormData({ ...formData, video_url: e.target.value })
                 }
                 placeholder="https://example.com/video.mp4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                disabled={!!selectedFile}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Enter a direct link to your video file (mp4, webm, etc.)
+                Or paste a direct link to your video file
               </p>
             </div>
 
             {/* Video Preview */}
-            {formData.video_url && (
+            {(previewUrl || formData.video_url) && (
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                 <video
-                  src={formData.video_url}
+                  src={previewUrl || formData.video_url}
                   controls
                   className="w-full h-full object-contain"
                   playsInline
@@ -152,13 +321,13 @@ export default function UploadVideoModal({
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags
-              </label>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={tagInput}
+              <button
+                type="submit"
+                disabled={loading || uploading}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? `Uploading... ${uploadProgress}%` : loading ? "Publishing..." : "Upload Video"}
+              </button>={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
