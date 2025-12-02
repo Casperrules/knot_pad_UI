@@ -108,7 +108,7 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Video Player */}
-      <div className="relative bg-black aspect-[9/16] max-h-[600px]">
+      <div className="relative bg-black aspect-[9/16] max-h-[600px] w-full">
         {canViewMature ? (
           <video
             src={video.video_url}
@@ -119,7 +119,7 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
             disablePictureInPicture={false}
             webkit-playsinline="true"
             x-webkit-airplay="allow"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover"
           >
             Your browser does not support the video tag.
           </video>
