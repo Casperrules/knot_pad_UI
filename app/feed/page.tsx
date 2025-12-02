@@ -14,7 +14,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading: authLoading } = useAuth();
 
   useEffect(() => {
     fetchFeed();
@@ -65,7 +65,12 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      {authLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Discover Stories
@@ -150,12 +155,13 @@ export default function FeedPage() {
             <p className="text-gray-500 text-base md:text-lg">
               {searchQuery ? "No stories found" : "No stories available yet"}
             </p>
-            <p className="text-gray-400 text-sm md:text-base mt-2">
-              {searchQuery
-                ? "Try a different search"
-                : "Be the first to create one!"}
-            </p>
           </div>
+        )}
+      </main>
+      )}
+    </div>
+  );
+}         </div>
         )}
       </main>
     </div>

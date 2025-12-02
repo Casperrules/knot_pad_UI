@@ -10,14 +10,16 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      if (user.role === "admin") {
-        router.push("/admin");
+    if (!loading) {
+      if (user) {
+        if (user.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/feed");
+        }
       } else {
         router.push("/feed");
       }
-    } else if (!loading && !user) {
-      router.push("/feed");
     }
   }, [user, loading, router]);
 

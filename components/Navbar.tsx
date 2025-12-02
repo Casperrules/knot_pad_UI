@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu } from "@headlessui/react";
 
 export default function Navbar() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, loading } = useAuth();
   const pathname = usePathname();
 
   const isActive = (path: string) => pathname === path;
@@ -25,66 +25,70 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {user && (
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
-                <Link
-                  href="/feed"
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive("/feed")
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Stories
-                </Link>
-                <Link
-                  href="/videos"
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive("/videos")
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Videos
-                </Link>
-                <Link
-                  href="/my-stories"
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive("/my-stories")
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  My Stories
-                </Link>
-                <Link
-                  href="/create"
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive("/create")
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Create Story
-                </Link>
-                {isAdmin && (
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+              <Link
+                href="/feed"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive("/feed")
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Stories
+              </Link>
+              <Link
+                href="/videos"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive("/videos")
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Videos
+              </Link>
+              {!loading && user && (
+                <>
                   <Link
-                    href="/admin"
+                    href="/my-stories"
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive("/admin")
+                      isActive("/my-stories")
                         ? "bg-blue-100 text-blue-700"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    Admin Panel
+                    My Stories
                   </Link>
-                )}
-              </div>
-            )}
+                  <Link
+                    href="/create"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive("/create")
+                        ? "bg-blue-100 text-blue-700"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Create Story
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive("/admin")
+                          ? "bg-blue-100 text-blue-700"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center">
-            {user ? (
+            {loading ? (
+              <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full"></div>
+            ) : user ? (
               <>
                 <Link
                   href="/create"

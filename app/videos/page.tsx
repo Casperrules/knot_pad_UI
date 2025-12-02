@@ -7,9 +7,10 @@ import type { Video } from "@/types";
 import VideoCard from "@/components/VideoCard";
 import UploadVideoModal from "@/components/UploadVideoModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Navbar from "@/components/Navbar";
 
 export default function VideosPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -49,6 +50,12 @@ export default function VideosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+      <Navbar />
+      {authLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      ) : (
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -135,6 +142,8 @@ export default function VideosPage() {
           onClose={() => setShowUploadModal(false)}
           onSuccess={handleVideoUploaded}
         />
+      )}
+    </div>
       )}
     </div>
   );
