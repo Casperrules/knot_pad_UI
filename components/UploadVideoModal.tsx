@@ -34,16 +34,10 @@ export default function UploadVideoModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = [
-      "video/mp4",
-      "video/webm",
-      "video/ogg",
-      "video/quicktime",
-      "video/x-msvideo",
-    ];
+    // Validate file type - Only MP4 for best mobile compatibility
+    const validTypes = ["video/mp4"];
     if (!validTypes.includes(file.type)) {
-      setError("Please select a valid video file (MP4, WebM, OGG, MOV, AVI)");
+      setError("Please select an MP4 video file for best mobile compatibility");
       return;
     }
 
@@ -214,7 +208,7 @@ export default function UploadVideoModal({
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
                 <input
                   type="file"
-                  accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo"
+                  accept="video/mp4"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="video-file-input"
@@ -254,7 +248,8 @@ export default function UploadVideoModal({
                         Click to select video
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        MP4, WebM, OGG, MOV, AVI (max 100MB)
+                        MP4 format only for best mobile compatibility (max
+                        100MB)
                       </p>
                     </div>
                   )}
