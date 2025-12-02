@@ -75,16 +75,28 @@ export default function Navbar() {
                       Create Story
                     </Link>
                     {isAdmin && (
-                      <Link
-                        href="/admin"
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${
-                          isActive("/admin")
-                            ? "bg-blue-100 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        Admin Panel
-                      </Link>
+                      <>
+                        <Link
+                          href="/admin"
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive("/admin")
+                              ? "bg-blue-100 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          Admin Panel
+                        </Link>
+                        <Link
+                          href="/monitoring"
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive("/monitoring")
+                              ? "bg-blue-100 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          Monitoring
+                        </Link>
+                      </>
                     )}
                   </>
                 )}
