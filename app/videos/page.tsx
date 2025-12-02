@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { videosAPI } from "@/lib/api";
 import type { Video } from "@/types";
@@ -8,8 +8,9 @@ import VideoCard from "@/components/VideoCard";
 import UploadVideoModal from "@/components/UploadVideoModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default function VideosPage() {
+function VideosContent() {
   const { user, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,8 @@ export default function VideosPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const fetchVideos = async () => {
     try {
@@ -38,6 +41,15 @@ export default function VideosPage() {
   useEffect(() => {
     fetchVideos();
   }, [page, search]);
+
+  // Check URL params to auto-open upload modal
+  useEffect(() => {
+    if (searchParams.get("upload") === "true" && user) {
+      setShowUploadModal(true);
+      // Clean up URL
+      router.replace("/videos", { scroll: false });
+    }
+  }, [searchParams, user, router]);
 
   const handleVideoUploaded = () => {
     setShowUploadModal(false);
@@ -61,7 +73,7 @@ export default function VideosPage() {
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Video Reels
+                Snippets
               </h1>
               <p className="text-gray-600 mb-6">
                 Discover short video stories from our community
@@ -77,7 +89,7 @@ export default function VideosPage() {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-500"
                 />
                 {user && (
                   <button
@@ -149,5 +161,22 @@ export default function VideosPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function VideosPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+          <Navbar />
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          </div>
+        </div>
+      }
+    >
+      <VideosContent />
+    </Suspense>
   );
 }
