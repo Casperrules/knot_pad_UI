@@ -4,9 +4,16 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
-import { storiesAPI } from "@/lib/api";
+import { storiesAPI, chaptersAPI } from "@/lib/api";
 import toast from "react-hot-toast";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+
+interface Chapter {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+}
 
 export default function CreateStoryPage() {
   const [title, setTitle] = useState("");
@@ -15,13 +22,24 @@ export default function CreateStoryPage() {
   const [tags, setTags] = useState("");
   const [matureContent, setMatureContent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [chapters, setChapters] = useState<Chapter[]>([
+    { id: "temp-1", title: "", content: "", order: 1 }
+  ]);
+  const [expandedChapter, setExpandedChapter] = useState<string | null>("temp-1");
   const router = useRouter();
 
-  const handleSubmit = async (e: FormEvent, asDraft: boolean = false) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
       toast.error("Title and description are required");
+      return;
+    }
+
+    // Validate chapters
+    const validChapters = chapters.filter(ch => ch.title.trim() && ch.content.trim());
+    if (validChapters.length === 0) {
+      toast.error("Please add at least one chapter with title and content");
       return;
     }
 
@@ -32,6 +50,7 @@ export default function CreateStoryPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
+      // Create story first
       const response = await storiesAPI.create({
         title: title.trim(),
         description: description.trim(),
@@ -40,16 +59,57 @@ export default function CreateStoryPage() {
         mature_content: matureContent,
       });
 
+      const storyId = response.data.id;
+
+      // Create chapters
+      for (let i = 0; i < validChapters.length; i++) {
+        const chapter = validChapters[i];
+        await chaptersAPI.create(storyId, {
+          title: chapter.title.trim(),
+          content: chapter.content.trim(),
+          chapter_number: i + 1,
+        });
+      }
+
       toast.success(
-        asDraft ? "Story created as draft!" : "Story submitted for approval!"
+        `Story created with ${validChapters.length} chapter${validChapters.length > 1 ? 's' : ''}!`
       );
-      router.push(`/story/${response.data.id}`);
+      router.push(`/story/${storyId}`);
     } catch (error) {
       console.error("Create error:", error);
       toast.error("Failed to create story");
     } finally {
       setLoading(false);
     }
+  };
+
+  const addChapter = () => {
+    const newChapter: Chapter = {
+      id: `temp-${Date.now()}`,
+      title: "",
+      content: "",
+      order: chapters.length + 1,
+    };
+    setChapters([...chapters, newChapter]);
+    setExpandedChapter(newChapter.id);
+  };
+
+  const removeChapter = (id: string) => {
+    if (chapters.length === 1) {
+      toast.error("You must have at least one chapter");
+      return;
+    }
+    setChapters(chapters.filter(ch => ch.id !== id));
+  };
+
+  const updateChapter = (id: string, field: 'title' | 'content', value: string) => {
+    setChapters(chapters.map(ch => 
+      ch.id === id ? { ...ch, [field]: value } : ch
+    ));
+  };
+
+  const toggleChapter = (id: string) => {
+    setExpandedChapter(expandedChapter === id ? null : id);
   };
 
   return (
@@ -62,14 +122,10 @@ export default function CreateStoryPage() {
               Create New Story
             </h1>
             <p className="text-gray-600 mb-6">
-              Start your story with a title and description. You can add
-              chapters after creating it.
+              Add your story details and write your first chapter. You can add more chapters too!
             </p>
 
-            <form
-              onSubmit={(e) => handleSubmit(e, false)}
-              className="space-y-6"
-            >
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -80,7 +136,7 @@ export default function CreateStoryPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter your story title..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder-gray-900"
                   required
                 />
               </div>
@@ -95,7 +151,7 @@ export default function CreateStoryPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your story... This will appear on the story card."
                   rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-900"
                   required
                 />
               </div>
@@ -111,7 +167,7 @@ export default function CreateStoryPage() {
                     value={coverImage}
                     onChange={(e) => setCoverImage(e.target.value)}
                     placeholder="https://example.com/cover.jpg"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder-gray-900"
                   />
                   <button
                     type="button"
@@ -145,7 +201,7 @@ export default function CreateStoryPage() {
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="romance, fantasy, adventure (comma-separated)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder-gray-900"
                 />
                 <p className="mt-1 text-sm text-gray-500">
                   Separate tags with commas
@@ -164,10 +220,100 @@ export default function CreateStoryPage() {
                 <label htmlFor="mature" className="text-sm text-gray-700">
                   <span className="font-medium">Mature Content</span>
                   <p className="text-gray-500 mt-1">
-                    Check this if your story contains adult themes, violence, or
-                    explicit content
+                    Check this if your story contains adult themes, violence, or explicit content
                   </p>
                 </label>
+              </div>
+
+              {/* Chapters Section */}
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Chapters</h2>
+                    <p className="text-sm text-gray-600">Write your first chapter and add more if you like</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addChapter}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Chapter
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {chapters.map((chapter, index) => (
+                    <div key={chapter.id} className="border border-gray-300 rounded-lg overflow-hidden">
+                      {/* Chapter Header */}
+                      <div 
+                        className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                        onClick={() => toggleChapter(chapter.id)}
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                          <span className="font-medium text-gray-900">
+                            {chapter.title || `Chapter ${index + 1} (untitled)`}
+                          </span>
+                          {chapter.content && (
+                            <span className="text-xs text-gray-500">
+                              ({chapter.content.length} characters)
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {chapters.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeChapter(chapter.id);
+                              }}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                          {expandedChapter === chapter.id ? (
+                            <ChevronUp className="w-5 h-5 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Chapter Content */}
+                      {expandedChapter === chapter.id && (
+                        <div className="p-4 space-y-4 bg-white">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Chapter Title <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={chapter.title}
+                              onChange={(e) => updateChapter(chapter.id, 'title', e.target.value)}
+                              placeholder={`Chapter ${index + 1} title...`}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 placeholder-gray-900"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Chapter Content <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                              value={chapter.content}
+                              onChange={(e) => updateChapter(chapter.id, 'content', e.target.value)}
+                              placeholder="Write your chapter content here..."
+                              rows={12}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-900 font-serif"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -180,14 +326,6 @@ export default function CreateStoryPage() {
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, true)}
-                  disabled={loading}
-                  className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
-                >
-                  {loading ? "Creating..." : "Save as Draft"}
-                </button>
-                <button
                   type="submit"
                   disabled={loading}
                   className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
@@ -196,14 +334,6 @@ export default function CreateStoryPage() {
                 </button>
               </div>
             </form>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> After creating your story, you&apos;ll be
-                able to add chapters to it. Stories need at least one published
-                chapter before submission for approval.
-              </p>
-            </div>
           </div>
         </main>
       </div>
