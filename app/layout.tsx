@@ -10,6 +10,9 @@ const pacifico = Pacifico({ weight: "400", subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "KnotPad - Share Your Stories",
   description: "A platform for sharing and discovering stories",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
