@@ -113,8 +113,13 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
           <video
             src={video.video_url}
             controls
-            className="w-full h-full object-contain"
             playsInline
+            preload="metadata"
+            controlsList="nodownload"
+            disablePictureInPicture={false}
+            webkit-playsinline="true"
+            x-webkit-airplay="allow"
+            className="w-full h-full object-contain"
           >
             Your browser does not support the video tag.
           </video>

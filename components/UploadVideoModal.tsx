@@ -298,7 +298,7 @@ export default function UploadVideoModal({
                   setFormData({ ...formData, video_url: e.target.value })
                 }
                 placeholder="https://example.com/video.mp4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-900"
                 disabled={!!selectedFile}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -332,7 +332,7 @@ export default function UploadVideoModal({
                 }
                 placeholder="Write a caption for your video..."
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-900"
                 required
               />
             </div>
@@ -354,7 +354,7 @@ export default function UploadVideoModal({
                     }
                   }}
                   placeholder="Add a tag..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-900"
                 />
                 <button
                   type="button"
