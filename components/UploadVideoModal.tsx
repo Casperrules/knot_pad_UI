@@ -34,7 +34,13 @@ export default function UploadVideoModal({
     if (!file) return;
 
     // Validate file type
-    const validTypes = ["video/mp4", "video/webm", "video/ogg", "video/quicktime", "video/x-msvideo"];
+    const validTypes = [
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+      "video/quicktime",
+      "video/x-msvideo",
+    ];
     if (!validTypes.includes(file.type)) {
       setError("Please select a valid video file (MP4, WebM, OGG, MOV, AVI)");
       return;
@@ -49,7 +55,7 @@ export default function UploadVideoModal({
 
     setError("");
     setSelectedFile(file);
-    
+
     // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
@@ -84,7 +90,9 @@ export default function UploadVideoModal({
 
       return response.data.url;
     } catch (err: any) {
-      throw new Error(err.response?.data?.detail || "Failed to upload video file");
+      throw new Error(
+        err.response?.data?.detail || "Failed to upload video file"
+      );
     } finally {
       setUploading(false);
     }
@@ -130,7 +138,9 @@ export default function UploadVideoModal({
       toast.success("Video published successfully!");
       onSuccess();
     } catch (err: any) {
-      setError(err.message || err.response?.data?.detail || "Failed to upload video");
+      setError(
+        err.message || err.response?.data?.detail || "Failed to upload video"
+      );
       toast.error(err.message || "Failed to upload video");
     } finally {
       setLoading(false);
@@ -321,13 +331,13 @@ export default function UploadVideoModal({
 
             {/* Tags */}
             <div>
-              <button
-                type="submit"
-                disabled={loading || uploading}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploading ? `Uploading... ${uploadProgress}%` : loading ? "Publishing..." : "Upload Video"}
-              </button>={tagInput}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
