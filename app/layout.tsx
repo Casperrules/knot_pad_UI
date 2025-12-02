@@ -3,7 +3,6 @@ import { Inter, Pacifico } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
-import AgeVerificationModal from "@/components/AgeVerificationModal";
 
 const inter = Inter({ subsets: ["latin"] });
 const pacifico = Pacifico({ weight: "400", subsets: ["latin"] });
@@ -22,7 +21,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-gray-50`}>
         <AuthProvider>
-          <AgeVerificationModal />
           {children}
           <Toaster position="top-right" />
         </AuthProvider>

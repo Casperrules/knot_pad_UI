@@ -35,7 +35,17 @@ export default function Navbar() {
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  Feed
+                  Stories
+                </Link>
+                <Link
+                  href="/videos"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive("/videos")
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Videos
                 </Link>
                 <Link
                   href="/my-stories"

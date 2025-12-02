@@ -21,9 +21,49 @@ export default function ProfilePage() {
   const [recentStories, setRecentStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Profile editing states
+  const [isEditing, setIsEditing] = useState(false);
+  const [newAnonymousName, setNewAnonymousName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [updating, setUpdating] = useState(false);
+
   useEffect(() => {
     fetchUserStats();
-  }, []);
+    if (user) {
+      setNewAnonymousName(user.anonymous_name);
+      setNewEmail(user.email || "");
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async () => {
+    if (!newAnonymousName.trim()) {
+      toast.error("Anonymous name cannot be empty");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const response = await api.put("/api/auth/profile", null, {
+        params: {
+          anonymous_name: newAnonymousName,
+          email: newEmail || undefined,
+        },
+      });
+
+      if (response.status === 200) {
+        toast.success("Profile updated successfully!");
+        setIsEditing(false);
+        // Reload user data
+        window.location.reload();
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.detail || "Failed to update profile";
+      toast.error(errorMsg);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const fetchUserStats = async () => {
     try {
@@ -238,39 +278,115 @@ export default function ProfilePage() {
 
               {/* Account Info */}
               <div className="mt-6 bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Account Information
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-gray-600">Username</span>
-                    <span className="font-medium text-gray-900">
-                      {user.username}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-gray-600">Display Name</span>
-                    <span className="font-medium text-gray-900">
-                      {user.anonymous_name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-gray-600">Role</span>
-                    <span className="font-medium text-gray-900 capitalize">
-                      {user.role}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Member Since</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(user.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Account Information
+                  </h2>
+                  {!isEditing && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Edit Profile
+                    </button>
+                  )}
                 </div>
+
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Anonymous Name
+                      </label>
+                      <input
+                        type="text"
+                        value={newAnonymousName}
+                        onChange={(e) => setNewAnonymousName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Your anonymous name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email (for account recovery)
+                      </label>
+                      <input
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="your.email@example.com"
+                      />
+                      <p className="mt-1 text-sm text-gray-500">
+                        Optional - used for OTP login and account recovery
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleUpdateProfile}
+                        disabled={updating}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {updating ? "Saving..." : "Save Changes"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditing(false);
+                          setNewAnonymousName(user?.anonymous_name || "");
+                          setNewEmail(user?.email || "");
+                        }}
+                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {user?.username && (
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-gray-600">Username</span>
+                        <span className="font-medium text-gray-900">
+                          {user.username}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Anonymous Name</span>
+                      <span className="font-medium text-gray-900">
+                        {user?.anonymous_name}
+                      </span>
+                    </div>
+                    {user?.email && (
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-gray-600">Email</span>
+                        <span className="font-medium text-gray-900">
+                          {user.email}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Role</span>
+                      <span className="font-medium text-gray-900 capitalize">
+                        {user?.role}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600">Member Since</span>
+                      <span className="font-medium text-gray-900">
+                        {user &&
+                          new Date(user.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
