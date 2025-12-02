@@ -46,7 +46,8 @@ export default function StoryDetailPage() {
           localStorage.getItem("mature_accepted_stories") || "[]"
         );
         // Authors and admins skip the warning
-        if (!isAuthor && !isAdmin && !acceptedStories.includes(storyId)) {
+        const isStoryAuthor = user && story.author_id === user.id;
+        if (!isStoryAuthor && !isAdmin && !acceptedStories.includes(storyId)) {
           setShowMatureWarning(true);
         } else {
           setMatureContentAccepted(true);

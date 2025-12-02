@@ -28,6 +28,7 @@ export default function UploadVideoModal({
   const [error, setError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,6 +112,13 @@ export default function UploadVideoModal({
       setError("Caption is required");
       return;
     }
+
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmPublish = async () => {
+    setShowConfirmModal(false);
 
     try {
       setLoading(true);
@@ -416,11 +424,95 @@ export default function UploadVideoModal({
                 disabled={loading}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Uploading..." : "Upload Video"}
+                {loading ? "Publishing..." : "Publish Video"}
               </button>
             </div>
           </form>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+              <div className="text-center">
+                <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  Ready to Publish?
+                </h2>
+
+                <div className="text-left space-y-4 mb-6 text-gray-700">
+                  <p className="font-semibold">
+                    Before publishing, please confirm:
+                  </p>
+
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>
+                      Your video content is appropriate and follows community
+                      guidelines
+                    </li>
+                    <li>
+                      You have properly tagged your video with relevant keywords
+                    </li>
+                    {formData.mature_content && (
+                      <li className="text-red-600 font-semibold">
+                        Your video is correctly marked as{" "}
+                        <strong>18+ Mature Content</strong>
+                      </li>
+                    )}
+                    {!formData.mature_content && (
+                      <li>
+                        Your video does NOT contain mature content (violence,
+                        explicit themes, strong language)
+                      </li>
+                    )}
+                    <li>
+                      Your video caption accurately represents the content
+                    </li>
+                  </ul>
+
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+                    <p className="text-sm text-purple-800">
+                      <strong>Note:</strong> Once published, your video will be
+                      immediately visible to all viewers.
+                      {formData.mature_content &&
+                        " Viewers will see a warning before viewing mature content."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition"
+                  >
+                    Review Again
+                  </button>
+                  <button
+                    onClick={handleConfirmPublish}
+                    className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition"
+                  >
+                    Confirm & Publish
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
