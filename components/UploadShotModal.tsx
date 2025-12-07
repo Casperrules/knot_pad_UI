@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Upload, Camera } from "lucide-react";
 import { shotsAPI } from "@/lib/api";
 import { ShotCreate } from "@/types";
 
@@ -22,16 +22,45 @@ export default function UploadShotModal({
     tags: [],
     mature_content: false,
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [tagInput, setTagInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file");
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Image size must be less than 10MB");
+        return;
+      }
+
+      setSelectedFile(file);
+      setError("");
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!formData.image_url.trim()) {
-      setError("Please enter an image URL");
+    if (!selectedFile) {
+      setError("Please select an image");
       return;
     }
 
@@ -43,7 +72,15 @@ export default function UploadShotModal({
     setIsUploading(true);
 
     try {
-      await shotsAPI.create(formData);
+      // Upload image first
+      const uploadResponse = await shotsAPI.uploadImage(selectedFile);
+      const imageUrl = uploadResponse.data.url;
+
+      // Create shot with uploaded image URL
+      await shotsAPI.create({
+        ...formData,
+        image_url: imageUrl,
+      });
 
       // Reset form
       setFormData({
@@ -52,6 +89,8 @@ export default function UploadShotModal({
         tags: [],
         mature_content: false,
       });
+      setSelectedFile(null);
+      setPreviewUrl("");
       setTagInput("");
 
       if (onUploadSuccess) {
@@ -119,38 +158,64 @@ export default function UploadShotModal({
             </div>
           )}
 
-          {/* Image URL */}
+          {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Image *
             </label>
-            <input
-              type="url"
-              value={formData.image_url}
-              onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter a direct link to your image
-            </p>
+            <div className="space-y-3">
+              {/* Upload Button */}
+              <div className="flex gap-2">
+                <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                  <Upload className="w-5 h-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">
+                    {selectedFile ? selectedFile.name : "Choose from gallery"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Camera Button (mobile only) */}
+                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors md:hidden">
+                  <Camera className="w-5 h-5 text-gray-500" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              <p className="text-xs text-gray-500">
+                Supported formats: JPG, PNG, GIF, WebP (Max 10MB)
+              </p>
+            </div>
           </div>
 
           {/* Image Preview */}
-          {formData.image_url && (
+          {previewUrl && (
             <div className="relative aspect-square bg-gray-100 rounded-md overflow-hidden">
               <img
-                src={formData.image_url}
+                src={previewUrl}
                 alt="Preview"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23f3f4f6' width='400' height='400'/%3E%3Ctext fill='%236b7280' font-family='sans-serif' font-size='18' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EInvalid Image URL%3C/text%3E%3C/svg%3E";
-                }}
               />
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFile(null);
+                  setPreviewUrl("");
+                }}
+                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
