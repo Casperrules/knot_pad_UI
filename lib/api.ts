@@ -217,6 +217,15 @@ export const shotsAPI = {
   like: (id: string) => api.post<LikeResponse>(`/api/shots/${id}/like`),
   getShareLink: (id: string) =>
     api.get<{ share_link: string }>(`/api/shots/${id}/share-link`),
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post<{ url: string }>("/api/shots/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
   // Admin endpoints
   approve: (id: string, data: ShotApproval) =>
     api.put<Shot>(`/api/shots/${id}/approval`, data),
