@@ -5,16 +5,17 @@ import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { storiesAPI, videosAPI, commentsAPI } from "@/lib/api";
-import { Story, Video, Comment } from "@/types";
+import { storiesAPI, videosAPI, commentsAPI, shotsAPI } from "@/lib/api";
+import { Story, Video, Comment, Shot } from "@/types";
 import toast from "react-hot-toast";
 
-type ContentType = "stories" | "videos" | "comments";
+type ContentType = "stories" | "videos" | "comments" | "shots";
 
 export default function AdminPage() {
   const [contentType, setContentType] = useState<ContentType>("stories");
   const [stories, setStories] = useState<Story[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [shots, setShots] = useState<Shot[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAdmin } = useAuth();
   const router = useRouter();
@@ -36,6 +37,9 @@ export default function AdminPage() {
       } else if (contentType === "videos") {
         const response = await videosAPI.getAll({ page_size: 50 });
         setVideos(response.data.videos);
+      } else if (contentType === "shots") {
+        const response = await shotsAPI.getAll({ limit: 50 });
+        setShots(response.data.shots);
       }
     } catch (error) {
       console.error("Error fetching content:", error);
@@ -81,6 +85,24 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteShot = async (shotId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to permanently delete this shot? This action cannot be undone."
+      )
+    )
+      return;
+
+    try {
+      await shotsAPI.delete(shotId);
+      toast.success("Shot deleted successfully");
+      setShots(shots.filter((s) => s.id !== shotId));
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete shot");
+    }
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -121,6 +143,16 @@ export default function AdminPage() {
                 }`}
               >
                 Videos
+              </button>
+              <button
+                onClick={() => setContentType("shots")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  contentType === "shots"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Shots
               </button>
             </nav>
           </div>
@@ -271,6 +303,65 @@ export default function AdminPage() {
                               />
                             </svg>
                           </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Shots */}
+              {contentType === "shots" && (
+                <div className="space-y-4">
+                  {shots.length === 0 ? (
+                    <div className="text-center py-12 bg-white rounded-lg shadow">
+                      <p className="text-gray-500">No shots found</p>
+                    </div>
+                  ) : (
+                    shots.map((shot) => (
+                      <div
+                        key={shot.id}
+                        className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex gap-4">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={shot.image_url}
+                              alt={shot.caption}
+                              className="w-32 h-32 object-cover rounded-lg"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-gray-900 mb-2">{shot.caption}</p>
+                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                              <span>By {shot.author_anonymous_name}</span>
+                              <span>•</span>
+                              <span>{shot.likes} likes</span>
+                            </div>
+                            {shot.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {shot.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full"
+                                  >
+                                    #{tag}
+                                  </span>
+                                ))}
+                                {shot.mature_content && (
+                                  <span className="px-2 py-1 bg-red-50 text-red-600 text-xs rounded-full">
+                                    18+
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleDeleteShot(shot.id)}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                            >
+                              Delete Shot
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))

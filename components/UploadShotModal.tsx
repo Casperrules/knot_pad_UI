@@ -99,7 +99,7 @@ export default function UploadShotModal({
 
       onClose();
       alert(
-        "Shot uploaded successfully! It will be visible after admin approval."
+        "✅ Shot uploaded successfully!\n\nYour shot is now live and visible to everyone."
       );
     } catch (error: any) {
       console.error("Error uploading shot:", error);
