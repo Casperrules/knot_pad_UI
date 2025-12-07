@@ -65,7 +65,24 @@ export default function ReferralCard() {
     );
   }
 
-  if (!referralInfo) return null;
+  if (!referralInfo) {
+    return (
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg shadow-md p-6 border border-purple-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Invite Friends & Earn Points
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Unable to load referral information. Please refresh the page.
+        </p>
+        <button
+          onClick={fetchReferralInfo}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg shadow-md p-6 border border-purple-200">
