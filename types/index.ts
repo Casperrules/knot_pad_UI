@@ -211,3 +211,43 @@ export interface VideoApproval {
   approved: boolean;
   rejection_reason?: string;
 }
+
+// Shot (Image Post) Types
+export interface Shot {
+  id: string;
+  image_url: string;
+  caption: string;
+  tags: string[];
+  mature_content: boolean;
+  author_anonymous_name: string;
+  author_id?: string;
+  likes: number;
+  is_liked: boolean;
+  status: "draft" | "pending" | "approved" | "rejected";
+  created_at: string;
+  updated_at: string;
+  rejection_reason?: string;
+}
+
+export interface ShotCreate {
+  image_url: string;
+  caption: string;
+  tags: string[];
+  mature_content?: boolean;
+}
+
+export interface ShotUpdate {
+  caption?: string;
+  tags?: string[];
+  mature_content?: boolean;
+}
+
+export interface ShotListResponse {
+  shots: Shot[];
+  total: number;
+}
+
+export interface ShotApproval {
+  approved: boolean;
+  rejection_reason?: string;
+}

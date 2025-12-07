@@ -73,6 +73,16 @@ export default function Navbar() {
                 >
                   Snippets
                 </Link>
+                <Link
+                  href="/shots"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive("/shots")
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Shots
+                </Link>
                 {!loading && user && (
                   <>
                     <Link
@@ -302,6 +312,35 @@ export default function Navbar() {
               }`}
             >
               Snippets
+            </span>
+          </Link>
+
+          {/* Shots */}
+          <Link
+            href="/shots"
+            className="flex flex-col items-center justify-center flex-1 h-full py-1"
+          >
+            <svg
+              className={`w-6 h-6 ${
+                isActive("/shots") ? "text-blue-600" : "text-gray-700"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={isActive("/shots") ? 2.5 : 2}
+              viewBox="0 0 24 24"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="m21 15-5-5L5 21" />
+            </svg>
+            <span
+              className={`text-[10px] mt-0.5 ${
+                isActive("/shots")
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-700"
+              }`}
+            >
+              Shots
             </span>
           </Link>
 

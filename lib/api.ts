@@ -24,6 +24,11 @@ import type {
   ShareLink,
   LikeResponse,
   LeaderboardResponse,
+  Shot,
+  ShotCreate,
+  ShotUpdate,
+  ShotListResponse,
+  ShotApproval,
 } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -193,6 +198,30 @@ export const userStatsAPI = {
   getUserStats: (userId: string) =>
     api.get<UserStats>(`/api/users/${userId}/stats`),
   getMyLikedPosts: () => api.get("/api/users/me/liked-posts"),
+};
+
+// Shots API
+export const shotsAPI = {
+  getAll: (params?: {
+    skip?: number;
+    limit?: number;
+    status_filter?: string;
+  }) => api.get<ShotListResponse>("/api/shots/", { params }),
+  getById: (id: string) => api.get<Shot>(`/api/shots/${id}`),
+  create: (data: ShotCreate) => api.post<Shot>("/api/shots/", data),
+  update: (id: string, data: ShotUpdate) =>
+    api.put<Shot>(`/api/shots/${id}`, data),
+  delete: (id: string) => api.delete(`/api/shots/${id}`),
+  getMyShots: (params?: { skip?: number; limit?: number }) =>
+    api.get<ShotListResponse>("/api/shots/my-shots", { params }),
+  like: (id: string) => api.post<LikeResponse>(`/api/shots/${id}/like`),
+  getShareLink: (id: string) =>
+    api.get<{ share_link: string }>(`/api/shots/${id}/share-link`),
+  // Admin endpoints
+  approve: (id: string, data: ShotApproval) =>
+    api.put<Shot>(`/api/shots/${id}/approval`, data),
+  getPending: (params?: { skip?: number; limit?: number }) =>
+    api.get<ShotListResponse>("/api/shots/pending/all", { params }),
 };
 
 export default api;
