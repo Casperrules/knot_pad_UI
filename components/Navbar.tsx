@@ -4,13 +4,34 @@ import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "@headlessui/react";
-import { useState } from "react";
-import { Home, Video, PlusSquare, User, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Video, PlusSquare, User, BookOpen, Award } from "lucide-react";
+import { userStatsAPI } from "@/lib/api";
 
 export default function Navbar() {
   const { user, logout, isAdmin, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [points, setPoints] = useState<number>(0);
+  const [loadingPoints, setLoadingPoints] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchPoints();
+    }
+  }, [user]);
+
+  const fetchPoints = async () => {
+    try {
+      setLoadingPoints(true);
+      const response = await userStatsAPI.getMyStats();
+      setPoints(response.data.points);
+    } catch (error) {
+      console.error("Failed to fetch points:", error);
+    } finally {
+      setLoadingPoints(false);
+    }
+  };
 
   const isActive = (path: string) => pathname === path;
 
@@ -108,6 +129,19 @@ export default function Navbar() {
                 <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full"></div>
               ) : user ? (
                 <>
+                  {/* Points Display */}
+                  <Link
+                    href="/profile"
+                    className="mr-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-md hover:from-yellow-500 hover:to-orange-600 font-bold text-sm flex items-center gap-2 shadow-md transition-all"
+                  >
+                    <Award className="w-4 h-4" />
+                    {loadingPoints ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      <span>{points.toLocaleString()} pts</span>
+                    )}
+                  </Link>
+
                   <Link
                     href="/create"
                     className="mr-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-sm flex items-center gap-2"
@@ -326,7 +360,7 @@ export default function Navbar() {
           {/* Profile / Login */}
           <Link
             href={user ? "/profile" : "/login"}
-            className="flex flex-col items-center justify-center flex-1 h-full py-1"
+            className="flex flex-col items-center justify-center flex-1 h-full py-1 relative"
           >
             {user ? (
               <>
@@ -341,6 +375,11 @@ export default function Navbar() {
                     {user.anonymous_name[0].toUpperCase()}
                   </span>
                 </div>
+                {points > 0 && (
+                  <div className="absolute -top-1 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                    {points > 999 ? `${Math.floor(points / 1000)}k` : points}
+                  </div>
+                )}
                 <span
                   className={`text-[10px] mt-0.5 ${
                     isActive("/profile")
