@@ -94,7 +94,7 @@ export default function VideoCard({ video, onDelete }: VideoCardProps) {
 
       if (navigator.share) {
         await navigator.share({
-          title: shareData.caption,
+          title: shareData.title,
           text: shareData.description,
           url: shareData.share_url,
         });
