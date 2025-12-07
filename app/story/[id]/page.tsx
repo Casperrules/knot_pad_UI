@@ -27,6 +27,10 @@ export default function StoryDetailPage() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [liking, setLiking] = useState(false);
+  const [isEditingStory, setIsEditingStory] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [updating, setUpdating] = useState(false);
   const storyId = params?.id as string;
 
   const isAuthor = user && story?.author_id === user.id;
@@ -40,6 +44,10 @@ export default function StoryDetailPage() {
       ]);
       setStory(storyResponse.data);
       setChapters(chaptersResponse.data);
+
+      // Initialize edit state
+      setEditedTitle(storyResponse.data.title);
+      setEditedDescription(storyResponse.data.description);
 
       // Initialize like state
       setLiked(storyResponse.data.is_liked || false);
@@ -134,6 +142,45 @@ export default function StoryDetailPage() {
     } catch (error) {
       console.error("Error publishing chapter:", error);
       toast.error("Failed to publish chapter");
+    }
+  };
+
+  const handleEditStory = () => {
+    if (story) {
+      setEditedTitle(story.title);
+      setEditedDescription(story.description);
+      setIsEditingStory(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingStory(false);
+    if (story) {
+      setEditedTitle(story.title);
+      setEditedDescription(story.description);
+    }
+  };
+
+  const handleUpdateStory = async () => {
+    if (!editedTitle.trim()) {
+      toast.error("Title cannot be empty");
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await storiesAPI.update(storyId, {
+        title: editedTitle,
+        description: editedDescription,
+      });
+      toast.success("Story updated successfully!");
+      setIsEditingStory(false);
+      fetchStory();
+    } catch (error) {
+      console.error("Error updating story:", error);
+      toast.error("Failed to update story");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -291,108 +338,172 @@ export default function StoryDetailPage() {
 
                   {/* Story Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
-                        {story.title}
-                      </h1>
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusBadge(
-                          story.status
-                        )}`}
-                      >
-                        {story.status}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">
-                            {story.author_anonymous_name[0].toUpperCase()}
-                          </span>
+                    {isEditingStory ? (
+                      /* Edit Mode */
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Title
+                          </label>
+                          <input
+                            type="text"
+                            value={editedTitle}
+                            onChange={(e) => setEditedTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Story title"
+                          />
                         </div>
-                        <span className="font-medium text-gray-900">
-                          {story.author_anonymous_name}
-                        </span>
-                      </div>
-                      <span>•</span>
-                      <span>{story.chapter_count} chapters</span>
-                      <span>•</span>
-                      <span>{story.total_reads} reads</span>
-                      <span>•</span>
-                      <button
-                        onClick={handleLike}
-                        disabled={liking}
-                        className="flex items-center gap-1 hover:text-red-500 transition-colors disabled:opacity-50"
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            liked ? "fill-red-500 text-red-500" : ""
-                          }`}
-                        />
-                        <span>{likeCount}</span>
-                      </button>
-                    </div>
-
-                    {story.description && (
-                      <p className="text-gray-700 mb-4 text-sm md:text-base leading-relaxed">
-                        {story.description}
-                      </p>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 mb-4">
-                      <button
-                        onClick={handleLike}
-                        disabled={liking}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                          liked
-                            ? "bg-red-50 text-red-600 hover:bg-red-100"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        <Heart
-                          className={`w-5 h-5 ${liked ? "fill-current" : ""}`}
-                        />
-                        {liked ? "Liked" : "Like"}
-                      </button>
-                      <button
-                        onClick={handleShare}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                      >
-                        <Share2 className="w-5 h-5" />
-                        Share
-                      </button>
-                    </div>
-
-                    {story.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {story.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full"
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Description
+                          </label>
+                          <textarea
+                            value={editedDescription}
+                            onChange={(e) =>
+                              setEditedDescription(e.target.value)
+                            }
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Story description"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleUpdateStory}
+                            disabled={updating}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium disabled:opacity-50"
                           >
-                            #{tag}
-                          </span>
-                        ))}
+                            {updating ? "Saving..." : "Save Changes"}
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={updating}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    ) : (
+                      /* View Mode */
+                      <>
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                            {story.title}
+                          </h1>
+                          <div className="flex items-center gap-2">
+                            {isAuthor && (
+                              <button
+                                onClick={handleEditStory}
+                                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-medium"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            <span
+                              className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusBadge(
+                                story.status
+                              )}`}
+                            >
+                              {story.status}
+                            </span>
+                          </div>
+                        </div>
 
-                    {story.mature_content && (
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full">
-                        ⚠️ Mature Content
-                      </div>
-                    )}
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+                              <span className="text-white text-sm font-semibold">
+                                {story.author_anonymous_name[0].toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-900">
+                              {story.author_anonymous_name}
+                            </span>
+                          </div>
+                          <span>•</span>
+                          <span>{story.chapter_count} chapters</span>
+                          <span>•</span>
+                          <span>{story.total_reads} reads</span>
+                          <span>•</span>
+                          <button
+                            onClick={handleLike}
+                            disabled={liking}
+                            className="flex items-center gap-1 hover:text-red-500 transition-colors disabled:opacity-50"
+                          >
+                            <Heart
+                              className={`w-4 h-4 ${
+                                liked ? "fill-red-500 text-red-500" : ""
+                              }`}
+                            />
+                            <span>{likeCount}</span>
+                          </button>
+                        </div>
 
-                    {story.rejection_reason && story.status === "rejected" && (
-                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm font-semibold text-red-800 mb-1">
-                          Story Rejected
-                        </p>
-                        <p className="text-sm text-red-700">
-                          {story.rejection_reason}
-                        </p>
-                      </div>
+                        {story.description && (
+                          <p className="text-gray-700 mb-4 text-sm md:text-base leading-relaxed">
+                            {story.description}
+                          </p>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mb-4">
+                          <button
+                            onClick={handleLike}
+                            disabled={liking}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                              liked
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            <Heart
+                              className={`w-5 h-5 ${
+                                liked ? "fill-current" : ""
+                              }`}
+                            />
+                            {liked ? "Liked" : "Like"}
+                          </button>
+                          <button
+                            onClick={handleShare}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                          >
+                            <Share2 className="w-5 h-5" />
+                            Share
+                          </button>
+                        </div>
+
+                        {story.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {story.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {story.mature_content && (
+                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full">
+                            ⚠️ Mature Content
+                          </div>
+                        )}
+
+                        {story.rejection_reason &&
+                          story.status === "rejected" && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                              <p className="text-sm font-semibold text-red-800 mb-1">
+                                Story Rejected
+                              </p>
+                              <p className="text-sm text-red-700">
+                                {story.rejection_reason}
+                              </p>
+                            </div>
+                          )}
+                      </>
                     )}
                   </div>
                 </div>
