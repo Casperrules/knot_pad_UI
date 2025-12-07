@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Shot } from "@/types";
-import { Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreVertical, Eye } from "lucide-react";
 import { shotsAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -187,6 +187,11 @@ export default function ShotCard({ shot, onLike, onDelete }: ShotCardProps) {
             />
             <span className="text-sm text-gray-600">{likes}</span>
           </button>
+
+          <div className="flex items-center gap-1 text-gray-600">
+            <Eye className="w-5 h-5" />
+            <span className="text-sm">{shot.views || 0}</span>
+          </div>
 
           <button
             onClick={handleShare}

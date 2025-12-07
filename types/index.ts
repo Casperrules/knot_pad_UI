@@ -222,6 +222,7 @@ export interface Shot {
   author_anonymous_name: string;
   author_id?: string;
   likes: number;
+  views: number;
   is_liked: boolean;
   status: "draft" | "pending" | "approved" | "rejected";
   created_at: string;
