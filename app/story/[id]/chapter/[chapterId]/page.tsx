@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
 import ChapterReader from "@/components/ChapterReader";
 import CommentSection from "@/components/CommentSection";
@@ -77,39 +76,35 @@ export default function ChapterPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <main className="max-w-6xl mx-auto px-4 py-8">
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-          </main>
-        </div>
-      </ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+        </main>
+      </div>
     );
   }
 
   if (!chapter || !story) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <main className="max-w-6xl mx-auto px-4 py-8">
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900">
-                Chapter not found
-              </h3>
-              <button
-                onClick={() => router.push(`/story/${storyId}`)}
-                className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
-              >
-                Back to Story
-              </button>
-            </div>
-          </main>
-        </div>
-      </ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900">
+              Chapter not found
+            </h3>
+            <button
+              onClick={() => router.push(`/story/${storyId}`)}
+              className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
+            >
+              Back to Story
+            </button>
+          </div>
+        </main>
+      </div>
     );
   }
 
@@ -122,63 +117,61 @@ export default function ChapterPage() {
       : undefined;
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-          <ChapterReader
-            chapter={chapter}
-            storyId={storyId}
-            storyTitle={story.title}
-            prevChapter={prevChapter}
-            nextChapter={nextChapter}
-            onTextSelect={handleTextSelect}
-          />
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <ChapterReader
+          chapter={chapter}
+          storyId={storyId}
+          storyTitle={story.title}
+          prevChapter={prevChapter}
+          nextChapter={nextChapter}
+          onTextSelect={handleTextSelect}
+        />
 
-          {/* Inline Comment Input */}
-          {showCommentInput && (
-            <div className="mt-6 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-              <div className="mb-2">
-                <p className="text-sm text-gray-600 mb-1">Selected text:</p>
-                <blockquote className="text-sm italic border-l-4 border-yellow-400 pl-3 py-1">
-                  &ldquo;{selectedText}&rdquo;
-                </blockquote>
-              </div>
-              <textarea
-                placeholder="Add your comment about this selection..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                rows={3}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    const value = e.currentTarget.value.trim();
-                    if (value) {
-                      handleCommentSubmit(value);
-                      e.currentTarget.value = "";
-                    }
-                  }
-                }}
-              />
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => setShowCommentInput(false)}
-                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-                >
-                  Cancel
-                </button>
-              </div>
+        {/* Inline Comment Input */}
+        {showCommentInput && (
+          <div className="mt-6 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+            <div className="mb-2">
+              <p className="text-sm text-gray-600 mb-1">Selected text:</p>
+              <blockquote className="text-sm italic border-l-4 border-yellow-400 pl-3 py-1">
+                &ldquo;{selectedText}&rdquo;
+              </blockquote>
             </div>
-          )}
-
-          {/* Chapter Comments */}
-          <div className="mt-8 bg-white rounded-lg shadow-md p-4 md:p-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
-              Chapter Comments
-            </h2>
-            <CommentSection storyId={storyId} chapterId={chapterId} />
+            <textarea
+              placeholder="Add your comment about this selection..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+              rows={3}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const value = e.currentTarget.value.trim();
+                  if (value) {
+                    handleCommentSubmit(value);
+                    e.currentTarget.value = "";
+                  }
+                }
+              }}
+            />
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => setShowCommentInput(false)}
+                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </main>
-      </div>
-    </ProtectedRoute>
+        )}
+
+        {/* Chapter Comments */}
+        <div className="mt-8 bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
+            Chapter Comments
+          </h2>
+          <CommentSection storyId={storyId} chapterId={chapterId} />
+        </div>
+      </main>
+    </div>
   );
 }
