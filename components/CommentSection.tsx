@@ -19,12 +19,16 @@ interface CommentSectionProps {
   storyId?: string;
   chapterId?: string;
   videoId?: string;
+  shotId?: string;
+  onCommentAdded?: () => void;
 }
 
 export default function CommentSection({
   storyId,
   chapterId,
   videoId,
+  shotId,
+  onCommentAdded,
 }: CommentSectionProps) {
   const { user } = useAuth();
   const [comments, setComments] = useState<CommentType[]>([]);
@@ -34,7 +38,7 @@ export default function CommentSection({
 
   useEffect(() => {
     loadComments();
-  }, [storyId, chapterId, videoId]);
+  }, [storyId, chapterId, videoId, shotId]);
 
   const loadComments = async () => {
     try {
@@ -42,7 +46,9 @@ export default function CommentSection({
         ? `/api/comments/chapter/${chapterId}`
         : storyId
         ? `/api/comments/story/${storyId}`
-        : `/api/comments/video/${videoId}`;
+        : videoId
+        ? `/api/comments/video/${videoId}`
+        : `/api/comments/shot/${shotId}`;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`
       );
@@ -69,7 +75,9 @@ export default function CommentSection({
       const token = localStorage.getItem("access_token");
       const endpoint = storyId
         ? `/api/comments/story/${storyId}`
-        : `/api/comments/video/${videoId}`;
+        : videoId
+        ? `/api/comments/video/${videoId}`
+        : `/api/comments/shot/${shotId}`;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
         {
@@ -80,7 +88,11 @@ export default function CommentSection({
           },
           body: JSON.stringify({
             content: newComment,
-            ...(storyId ? { story_id: storyId } : { video_id: videoId }),
+            ...(storyId
+              ? { story_id: storyId }
+              : videoId
+              ? { video_id: videoId }
+              : { shot_id: shotId }),
           }),
         }
       );
@@ -88,6 +100,9 @@ export default function CommentSection({
       if (response.ok) {
         setNewComment("");
         await loadComments();
+        if (onCommentAdded) {
+          onCommentAdded();
+        }
       } else {
         const data = await response.json();
         setError(data.detail || "Failed to post comment");

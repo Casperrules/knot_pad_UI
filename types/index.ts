@@ -105,6 +105,7 @@ export interface Comment {
   story_id?: string;
   chapter_id?: string;
   video_id?: string;
+  shot_id?: string;
   user_anonymous_name: string;
   content: string;
   selected_text?: string;
@@ -223,6 +224,7 @@ export interface Shot {
   author_id?: string;
   likes: number;
   views: number;
+  comments_count: number;
   is_liked: boolean;
   status: "draft" | "pending" | "approved" | "rejected";
   created_at: string;

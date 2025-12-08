@@ -145,10 +145,13 @@ export const commentsAPI = {
     api.get<Comment[]>(`/api/comments/chapter/${chapterId}`),
   getByVideo: (videoId: string) =>
     api.get<Comment[]>(`/api/comments/video/${videoId}`),
+  getByShot: (shotId: string) =>
+    api.get<Comment[]>(`/api/comments/shot/${shotId}`),
   create: (data: {
     story_id?: string;
     chapter_id?: string;
     video_id?: string;
+    shot_id?: string;
     content: string;
     parent_id?: string;
     selected_text?: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Shot } from "@/types";
 import { Heart, MessageCircle, Share2, MoreVertical, Eye } from "lucide-react";
 import { shotsAPI } from "@/lib/api";
@@ -14,6 +15,7 @@ interface ShotCardProps {
 
 export default function ShotCard({ shot, onLike, onDelete }: ShotCardProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(shot.is_liked);
   const [likes, setLikes] = useState(shot.likes);
   const [showMenu, setShowMenu] = useState(false);
@@ -186,6 +188,14 @@ export default function ShotCard({ shot, onLike, onDelete }: ShotCardProps) {
               }`}
             />
             <span className="text-sm text-gray-600">{likes}</span>
+          </button>
+
+          <button
+            onClick={() => router.push(`/shot/${shot.id}`)}
+            className="flex items-center gap-1 text-gray-600 hover:text-blue-500 transition-colors"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-sm">{shot.comments_count || 0}</span>
           </button>
 
           <div className="flex items-center gap-1 text-gray-600">
